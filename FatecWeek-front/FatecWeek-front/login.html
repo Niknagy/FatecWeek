@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema - Expo Week</title>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+    <div id="tela-login">
+        <header class="header" style="padding: 40px 20px;">
+            <h1>Acesso Restrito</h1>
+            <p>Expo Week - Fatec Osasco</p>
+        </header>
+
+        <main class="container">
+            <section class="sobre form-container">
+                <h2 style="text-align: center;">Fazer Login</h2>
+                <p style="text-align: center; margin-bottom: 30px; font-size: 14px; color: #666;">
+                    Insira suas credenciais para acessar o painel administrativo.
+                </p>
+                
+                <form id="form-login" onsubmit="realizarLogin(event)">
+                    <div class="input-group">
+                        <label for="email">E-mail ou Usuário</label>
+                        <input type="text" id="email" placeholder="admin@fatecosasco.edu.br" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="senha">Senha</label>
+                        <input type="password" id="senha" placeholder="••••••••" required>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button type="submit" class="btn" style="width: 100%;">Entrar no Sistema</button>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <div id="tela-dashboard" class="hidden">
+        <header class="header" style="padding: 30px 20px;">
+            <h1>Painel de Administração</h1>
+            <p>Gestão da API OpenID</p>
+        </header>
+
+        <main class="container">
+            <section class="info-grid">
+                <div class="info-card">
+                    <h3>Total de Usuários</h3>
+                    <p style="font-size: 36px; font-weight: bold; color: #333;" id="total-users">-</p>
+                </div>
+                <div class="info-card">
+                    <h3>Usuários Ativos</h3>
+                    <p style="font-size: 36px; font-weight: bold; color: #28a745;" id="active-users">-</p>
+                </div>
+            </section>
+
+            <section class="sobre">
+                <div class="acoes-topo">
+                    <h2 style="text-align: left; margin: 0;">Lista de Usuários</h2>
+                    <button class="btn" style="font-size: 16px; padding: 10px 20px;">+ Novo Usuário</button>
+                </div>
+                
+                <table class="tabela-usuarios">
+                    <thead>
+                        <tr>
+                            <th>Nome Completo</th>
+                            <th>E-mail</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 30px; color: #666;">
+                                Conectando com https://expoweek.fatecosasco.cps.sp.gov.br/api/v1/users ...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2026 Expo Week - Fatec Osasco.</p>
+    </footer>
+
+    <script>
+
+        function realizarLogin(event) {
+            event.preventDefault(); 
+
+
+            
+
+            document.getElementById('tela-login').classList.add('hidden');
+            document.getElementById('tela-dashboard').classList.remove('hidden');
+
+            buscarUsuariosApi();
+        }
+
+
+        function buscarUsuariosApi() {
+
+            const apiMockResponse = [
+                { id: 1, name: "Ana Beatriz Silva", email: "ana.silva@fatec.sp.gov.br", status: "Ativo" },
+                { id: 2, name: "Carlos Eduardo Costa", email: "carlos.costa@fatec.sp.gov.br", status: "Ativo" },
+                { id: 3, name: "Mariana Souza", email: "mariana.souza@fatec.sp.gov.br", status: "Inativo" },
+                { id: 4, name: "João Pedro Oliveira", email: "joao.oliveira@fatec.sp.gov.br", status: "Ativo" }
+            ];
+
+
+            setTimeout(() => {
+                const tbody = document.getElementById('users-table-body');
+                tbody.innerHTML = ''; 
+
+                let ativos = 0;
+
+                apiMockResponse.forEach(user => {
+                    if(user.status === 'Ativo') ativos++;
+
+                    const badgeClass = user.status === 'Ativo' ? 'badge-ativo' : 'badge-inativo';
+
+                    const row = `
+                        <tr>
+                            <td style="font-weight: bold;">${user.name}</td>
+                            <td>${user.email}</td>
+                            <td><span class="badge ${badgeClass}">${user.status}</span></td>
+                            <td>
+                                <a href="#" style="color: #c41e3a; text-decoration: none; margin-right: 15px;">Editar</a>
+                                <a href="#" style="color: #666; text-decoration: none;">Excluir</a>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+
+                document.getElementById('total-users').innerText = apiMockResponse.length;
+                document.getElementById('active-users').innerText = ativos;
+                
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

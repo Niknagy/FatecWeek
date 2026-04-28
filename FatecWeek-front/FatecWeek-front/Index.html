@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Usuários - Expo Week</title>
+    <link rel="stylesheet" href="style.css">
+    
+</head>
+<body>
+
+    <header class="header" style="padding: 30px 20px;">
+        <h1>Painel de Administração</h1>
+        <p>Gestão da API: /api/v1/users</p>
+    </header>
+
+    <main class="container">
+        
+        <section class="info-grid">
+            <div class="info-card">
+                <h3>Total de Usuários</h3>
+                <p style="font-size: 36px; font-weight: bold; color: #333;" id="total-users">0</p>
+            </div>
+            <div class="info-card">
+                <h3>Usuários Ativos</h3>
+                <p style="font-size: 36px; font-weight: bold; color: #28a745;" id="active-users">0</p>
+            </div>
+        </section>
+
+        <section class="sobre">
+            <div class="acoes-topo">
+                <h2 style="text-align: left; margin: 0;">Lista de Usuários</h2>
+                <button class="btn" style="font-size: 16px; padding: 10px 20px;">+ Novo Usuário</button>
+            </div>
+            
+            <table class="tabela-usuarios">
+                <thead>
+                    <tr>
+                        <th>Nome Completo</th>
+                        <th>E-mail</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table-body">
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 30px;">
+                            Buscando informações no banco de dados...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 Expo Week - Fatec Osasco. Ambiente Logado.</p>
+    </footer>
+
+    <script>
+
+        const apiMockResponse = [
+            { id: 1, name: "Ana Beatriz Silva", email: "ana.silva@fatec.sp.gov.br", status: "Ativo" },
+            { id: 2, name: "Carlos Eduardo Costa", email: "carlos.costa@fatec.sp.gov.br", status: "Ativo" },
+            { id: 3, name: "Mariana Souza", email: "mariana.souza@fatec.sp.gov.br", status: "Inativo" },
+            { id: 4, name: "João Pedro Oliveira", email: "joao.oliveira@fatec.sp.gov.br", status: "Ativo" }
+        ];
+
+        function renderUsers(users) {
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = ''; // Limpa a mensagem de carregamento
+
+            let ativos = 0;
+
+            users.forEach(user => {
+
+                if(user.status === 'Ativo') ativos++;
+
+                const badgeClass = user.status === 'Ativo' ? 'badge-ativo' : 'badge-inativo';
+
+                const row = `
+                    <tr>
+                        <td style="font-weight: bold;">${user.name}</td>
+                        <td>${user.email}</td>
+                        <td>
+                            <span class="badge ${badgeClass}">${user.status}</span>
+                        </td>
+                        <td>
+                            <a href="#" style="color: #c41e3a; text-decoration: none; margin-right: 15px;">Editar</a>
+                            <a href="#" style="color: #666; text-decoration: none;">Excluir</a>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+
+
+            document.getElementById('total-users').innerText = users.length;
+            document.getElementById('active-users').innerText = ativos;
+        }
+
+
+        setTimeout(() => {
+            renderUsers(apiMockResponse);
+        }, 1000);
+    </script>
+</body>
+</html>
