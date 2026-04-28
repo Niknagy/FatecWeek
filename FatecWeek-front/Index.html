@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Expo Week Fatec</title>
+    
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* Animação suave ao trocar de formulário */
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Estilizando as abas de navegação com design moderno */
+        .nav-sistema { 
+            display: flex; 
+            justify-content: center; 
+            flex-wrap: wrap;
+            gap: 12px; 
+            margin-bottom: 35px; 
+        }
+        .tab-btn { 
+            cursor: pointer; 
+            padding: 12px 24px; 
+            border-radius: 50px; /* Estilo pílula */
+            border: 2px solid transparent; 
+            background: #fff; 
+            color: #555; 
+            font-size: 15px;
+            font-weight: bold; 
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Sombra super leve */
+        }
+        .tab-btn:hover {
+            transform: translateY(-2px); /* Efeito de flutuar */
+            box-shadow: 0 4px 12px rgba(196, 30, 58, 0.15);
+            color: #c41e3a;
+        }
+        .tab-btn.active { 
+            background: #c41e3a; 
+            color: white; 
+            box-shadow: 0 4px 15px rgba(196, 30, 58, 0.3);
+        }
+
+        /* Deixando os inputs da sua classe .input-group mais elegantes */
+        .input-group input, 
+        .input-group select, 
+        .input-group textarea { 
+            background-color: #fafafa;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        .input-group input:focus, 
+        .input-group select:focus, 
+        .input-group textarea:focus { 
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(196, 30, 58, 0.1); /* Brilho em volta do campo */
+        }
+        .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            resize: vertical;
+            min-height: 100px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        /* Ajustes no cabeçalho do formulário */
+        .form-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-header h2 { margin-bottom: 5px; }
+        .form-header p { color: #666; font-size: 15px; }
+
+        /* Deixando o botão de envio mais imponente */
+        .btn-submit {
+            width: 100%;
+            margin-top: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(196, 30, 58, 0.2);
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(196, 30, 58, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <h1>Sistema de Integração</h1>
+        <p>Cadastros da API v1 - Expo Week</p>
+    </header>
+
+    <main class="container">
+        
+        <nav class="nav-sistema">
+            <button class="tab-btn active" onclick="switchTab('usuarios')">👤 Visitantes / Alunos</button>
+            <button class="tab-btn" onclick="switchTab('bancas')">💡 Bancas / Expositores</button>
+            <button class="tab-btn" onclick="switchTab('palestrantes')">🎤 Palestrantes</button>
+        </nav>
+
+        <section id="tab-usuarios" class="sobre fade-in">
+            <div class="form-container">
+                <div class="form-header">
+                    <h2>Novo Usuário</h2>
+                    <p>Preencha os dados do participante.</p>
+                </div>
+
+                <form onsubmit="handleFormSubmit(event, 'users')">
+                    <div class="input-group">
+                        <label>Tipo de Perfil</label>
+                        <select id="user-type" onchange="toggleStudentFields()" required>
+                            <option value="visitante">Visitante</option>
+                            <option value="aluno">Aluno da Fatec</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Nome Completo</label>
+                        <input type="text" placeholder="Ex: João da Silva" required>
+                    </div>
+                    <div class="input-group">
+                        <label>E-mail de Contato</label>
+                        <input type="email" placeholder="email@exemplo.com" required>
+                    </div>
+                    
+                    <div id="campo-ra" class="input-group hidden">
+                        <label>RA (Registro Acadêmico)</label>
+                        <input type="text" placeholder="Digite apenas os números">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-submit">Cadastrar Usuário</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="tab-bancas" class="sobre fade-in hidden">
+            <div class="form-container">
+                <div class="form-header">
+                    <h2>Nova Banca</h2>
+                    <p>Cadastre os projetos que serão exibidos.</p>
+                </div>
+
+                <form onsubmit="handleFormSubmit(event, 'bancas')">
+                    <div class="input-group">
+                        <label>Nome do Projeto / TCC</label>
+                        <input type="text" placeholder="Qual o nome do projeto?" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Nomes dos Integrantes</label>
+                        <textarea placeholder="Ex: Ana Souza, Carlos Eduardo..." required></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label>Localização (Stand)</label>
+                        <input type="text" placeholder="Ex: Stand A12 ou Sala 04">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-submit">Cadastrar Banca</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="tab-palestrantes" class="sobre fade-in hidden">
+            <div class="form-container">
+                <div class="form-header">
+                    <h2>Novo Palestrante</h2>
+                    <p>Insira os dados do profissional.</p>
+                </div>
+
+                <form onsubmit="handleFormSubmit(event, 'palestrantes')">
+                    <div class="input-group">
+                        <label>Nome do Palestrante</label>
+                        <input type="text" placeholder="Nome completo" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Empresa / Instituição</label>
+                        <input type="text" placeholder="Onde ele trabalha? (Ex: Microsoft, Fatec)">
+                    </div>
+                    <div class="input-group">
+                        <label>Título da Palestra</label>
+                        <input type="text" placeholder="Qual será o assunto abordado?" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-submit">Cadastrar Palestrante</button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 Expo Week - Fatec Osasco. Ambiente de Integração.</p>
+    </footer>
+
+    <script>
+        // --- Troca de Telas (Abas) ---
+        function switchTab(tabName) {
+            document.querySelectorAll('.sobre').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            const section = document.getElementById('tab-' + tabName);
+            section.classList.remove('hidden');
+            
+            // Reinicia a animação de Fade-in
+            section.classList.remove('fade-in');
+            void section.offsetWidth; 
+            section.classList.add('fade-in');
+
+            event.currentTarget.classList.add('active');
+        }
+
+        // --- Mostra/Esconde RA para Alunos ---
+        function toggleStudentFields() {
+            const type = document.getElementById('user-type').value;
+            const raField = document.getElementById('campo-ra');
+            type === 'aluno' ? raField.classList.remove('hidden') : raField.classList.add('hidden');
+        }
+
+        // --- Recupera Token JWT ---
+        function getJwtToken() {
+            // Em produção, isso viria após o login
+            return localStorage.getItem('jwt_token') || 'eyJhbGciOiJIUzI1NiIsInR...'; // Mock token para teste visual
+        }
+
+        // --- Simula Envio para a API ---
+        async function handleFormSubmit(event, controller) {
+            event.preventDefault();
+            
+            const token = getJwtToken();
+            if (!token) {
+                alert("Acesso Negado: Token JWT ausente.");
+                return;
+            }
+
+            const issuer = "expoweek.fatecosasco.cps.sp.gov.br";
+            const url = `https://${issuer}/api/v1/${controller}`;
+
+            alert(`✅ Sucesso!\n\nDados enviados para: ${url}\nCom autorização Bearer Token.`);
+            
+            event.target.reset();
+            document.getElementById('campo-ra').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
