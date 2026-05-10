@@ -17,18 +17,17 @@ export default function EstandesPage() {
   const [estandes,          setEstandes]          = useState([]);
   const [loading,           setLoading]           = useState(false);
 
-  const [name,                 setName]                 = useState('');
-  const [location,             setLocation]             = useState('');
+  const [nome,                 setNome]                 = useState('');
+  const [localizacao,          setLocalizacao]          = useState('');
   const [estandeParaAtribuir,  setEstandeParaAtribuir]  = useState('');
   const [expositorParaAtribuir,setExpositorParaAtribuir] = useState('');
 
-  // Carrega estandes do evento selecionado — GET /api/booths?eventId=...
   const carregarEstandes = useCallback(async () => {
     if (!eventoSelecionado) return;
     try {
       setLoading(true);
       const data = await boothService.listByEvent(eventoSelecionado);
-      const lista = data.items || data;
+      const lista = Array.isArray(data) ? data : data?.items || [];
       setEstandes(lista);
       if (lista.length > 0) setEstandeParaAtribuir(lista[0].id);
     } catch (error) {
@@ -41,12 +40,12 @@ export default function EstandesPage() {
   const carregarDadosBase = useCallback(async () => {
     try {
       const evData  = await eventService.list();
-      const eventos = evData.items || evData;
+      const eventos = Array.isArray(evData) ? evData : evData?.items || [];
       setEventos(eventos);
       if (eventos.length > 0) setEventoSelecionado(eventos[0].id);
 
       const expData    = await exhibitorService.list();
-      const expositores = expData.items || expData;
+      const expositores = Array.isArray(expData) ? expData : expData?.items || [];
       setExpositores(expositores);
       if (expositores.length > 0) setExpositorParaAtribuir(expositores[0].id);
     } catch (error) {
@@ -57,13 +56,19 @@ export default function EstandesPage() {
   useEffect(() => { carregarDadosBase(); }, [carregarDadosBase]);
   useEffect(() => { carregarEstandes();  }, [carregarEstandes]);
 
+  const eventoAtual = eventos.find(ev => ev.id === eventoSelecionado);
+  const regraEvento = {
+    minimumStayMinutes: eventoAtual?.minimumStayMinutes ?? eventoAtual?.tempoMinimoMinutos ?? 0,
+    scoreValue: eventoAtual?.scoreValue ?? eventoAtual?.pontuacao ?? 0,
+  };
+
   const handleCriarEstande = async (e) => {
     e.preventDefault();
     try {
-      await boothService.create({ eventId: eventoSelecionado, name, location });
+      await boothService.create({ eventoId: eventoSelecionado, nome, localizacao });
       alert('Estande criado com sucesso!');
       carregarEstandes();
-      setName(''); setLocation('');
+      setNome(''); setLocalizacao('');
     } catch (error) {
       console.error(error);
       alert('Falha ao criar estande.');
@@ -81,7 +86,6 @@ export default function EstandesPage() {
     }
   };
 
-  // POST /api/booths/{boothId}/exhibitors — corpo: "guid-do-expositor" (string JSON)
   const handleAtribuir = async (e) => {
     e.preventDefault();
     try {
@@ -94,7 +98,6 @@ export default function EstandesPage() {
     }
   };
 
-  // DELETE /api/booths/{boothId}/exhibitors/{exhibitorId}
   const handleRemoverExpositor = async (boothId, exhibitorId) => {
     try {
       await boothService.removeExhibitor(boothId, exhibitorId);
@@ -119,8 +122,11 @@ export default function EstandesPage() {
           onChange={e => setEventoSelecionado(e.target.value)}
           style={{ ...inputStyle, width: '320px' }}
         >
-          {eventos.map(ev => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
+          {eventos.map(ev => <option key={ev.id} value={ev.id}>{ev.nomeEvento || ev.name}</option>)}
         </select>
+        <p style={{ marginTop: '12px', color: '#666', fontSize: '14px' }}>
+          Regra ativa para validação: permanência mínima de {regraEvento.minimumStayMinutes} min e pontuação {regraEvento.scoreValue}.
+        </p>
       </div>
 
       {/* Cards de criação e vinculação */}
@@ -129,8 +135,8 @@ export default function EstandesPage() {
         <div className="card info-card" style={{ textAlign: 'left' }}>
           <h3 style={{ color: '#c41e3a', marginBottom: '18px' }}>Cadastrar Novo Estande</h3>
           <form onSubmit={handleCriarEstande} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <input placeholder="Identificação (ex.: Estande 12)" value={name}     onChange={e => setName(e.target.value)}     required style={inputStyle} />
-            <input placeholder="Localização (ex.: Pavilhão A)"   value={location} onChange={e => setLocation(e.target.value)} required style={inputStyle} />
+            <input placeholder="Identificação (ex.: Estande 12)" value={nome}       onChange={e => setNome(e.target.value)}       required style={inputStyle} />
+            <input placeholder="Localização (ex.: Pavilhão A)"   value={localizacao} onChange={e => setLocalizacao(e.target.value)} required style={inputStyle} />
             <button type="submit" className="btn" style={{ width: '100%' }}>Criar Estande</button>
           </form>
         </div>
@@ -142,13 +148,13 @@ export default function EstandesPage() {
             <select value={estandeParaAtribuir} onChange={e => setEstandeParaAtribuir(e.target.value)} required style={inputStyle}>
               <option value="">— Selecione o Estande —</option>
               {estandes.map(est => (
-                <option key={est.id} value={est.id}>{est.name} ({est.location})</option>
+                <option key={est.id} value={est.id}>{est.nome || est.name} ({est.localizacao || est.location})</option>
               ))}
             </select>
             <select value={expositorParaAtribuir} onChange={e => setExpositorParaAtribuir(e.target.value)} required style={inputStyle}>
               <option value="">— Selecione a Empresa —</option>
               {expositores.map(exp => (
-                <option key={exp.id} value={exp.id}>{exp.name}</option>
+                <option key={exp.id} value={exp.id}>{exp.nomeEmpresa || exp.nome || exp.name}</option>
               ))}
             </select>
             <button type="submit" className="btn" style={{ width: '100%' }}>Vincular</button>
@@ -177,14 +183,14 @@ export default function EstandesPage() {
               <tbody>
                 {estandes.map(est => (
                   <tr key={est.id} style={{ borderBottom: '1px solid #eee' }}>
-                    <td style={{ padding: '12px 8px', fontWeight: 'bold' }}>{est.name}</td>
-                    <td style={{ padding: '12px 8px' }}>{est.location}</td>
+                    <td style={{ padding: '12px 8px', fontWeight: 'bold' }}>{est.nome || est.name}</td>
+                    <td style={{ padding: '12px 8px' }}>{est.localizacao || est.location}</td>
                     <td style={{ padding: '12px 8px' }}>
-                      {est.exhibitors && est.exhibitors.length > 0 ? (
+                      {(est.expositores || est.exhibitors)?.length > 0 ? (
                         <ul style={{ margin: 0, paddingLeft: '18px' }}>
-                          {est.exhibitors.map(exp => (
+                          {(est.expositores || est.exhibitors).map(exp => (
                             <li key={exp.id} style={{ marginBottom: '4px' }}>
-                              {exp.name}
+                              {exp.nomeEmpresa || exp.nome || exp.name}
                               <button
                                 onClick={() => handleRemoverExpositor(est.id, exp.id)}
                                 style={{ background: 'none', border: 'none', color: '#dc3545', cursor: 'pointer', marginLeft: '6px', fontWeight: 'bold' }}

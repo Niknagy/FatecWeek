@@ -1,30 +1,83 @@
 import api from '../api';
 
+function normalizeEvento(ev = {}) {
+  return {
+    ...ev,
+    id: ev.id,
+    name: ev.name || ev.nomeEvento || '',
+    nomeEvento: ev.nomeEvento || ev.name || '',
+    tipo: ev.tipo || '',
+    data: ev.data || '',
+    horaInicio: ev.horaInicio || '',
+    horaFim: ev.horaFim || '',
+    totalCheckins: ev.totalCheckins ?? ev.totalParticipantes ?? 0,
+    scoreValue: ev.scoreValue ?? ev.pontuacao ?? 0,
+    pontuacao: ev.pontuacao ?? ev.scoreValue ?? 0,
+    minimumStayMinutes: ev.minimumStayMinutes ?? ev.tempoMinimoMinutos ?? 0,
+    tempoMinimoMinutos: ev.tempoMinimoMinutos ?? ev.minimumStayMinutes ?? 0,
+  };
+}
+
+function normalizeList(payload) {
+  const list = Array.isArray(payload?.items)
+    ? payload.items
+    : Array.isArray(payload)
+      ? payload
+      : [];
+  return list.map(normalizeEvento);
+}
+
 export const eventService = {
   async list(params = {}) {
-    const response = await api.get('/api/events', { params });
-    return response.data;
+    try {
+      const response = await api.get('/eventos', { params });
+      return normalizeList(response.data);
+    } catch {
+      const response = await api.get('/api/events', { params });
+      return normalizeList(response.data);
+    }
   },
 
   async get(id) {
-    const response = await api.get(`/api/events/${id}`);
-    return response.data;
+    try {
+      const response = await api.get(`/eventos/${id}`);
+      return normalizeEvento(response.data);
+    } catch {
+      const response = await api.get(`/api/events/${id}`);
+      return normalizeEvento(response.data);
+    }
   },
 
   async create(data) {
-    const response = await api.post('/api/events', data);
+    const payload = {
+      nomeEvento: data.nomeEvento || data.name || data.nome,
+      tipo: data.tipo,
+      data: data.data,
+      horaInicio: data.horaInicio,
+      horaFim: data.horaFim,
+      pontuacao: data.pontuacao ?? data.scoreValue ?? 0,
+      tempoMinimoMinutos: data.tempoMinimoMinutos ?? data.minimumStayMinutes ?? 0,
+    };
+    const response = await api.post('/eventos', payload);
     return response.data;
   },
 
-  // Apenas eventos em status Draft podem ser atualizados
   async update(id, data) {
-    const response = await api.put(`/api/events/${id}`, { id, ...data });
+    const payload = {
+      nomeEvento: data.nomeEvento || data.name || data.nome,
+      tipo: data.tipo,
+      data: data.data,
+      horaInicio: data.horaInicio,
+      horaFim: data.horaFim,
+      pontuacao: data.pontuacao ?? data.scoreValue ?? 0,
+      tempoMinimoMinutos: data.tempoMinimoMinutos ?? data.minimumStayMinutes ?? 0,
+    };
+    const response = await api.put(`/eventos/${id}`, payload);
     return response.data;
   },
 
-  // Apenas eventos em status Draft podem ser excluídos
   async delete(id) {
-    await api.delete(`/api/events/${id}`);
+    await api.delete(`/eventos/${id}`);
     return true;
   },
 

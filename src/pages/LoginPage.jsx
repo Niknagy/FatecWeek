@@ -24,6 +24,34 @@ export default function LoginPage() {
     }
   };
 
+  const handleLoginSemSenha = () => {
+    const now = Math.floor(Date.now() / 1000);
+
+    const header = { alg: 'none', typ: 'JWT' };
+    const payload = {
+      sub: 'dev-user',
+      email: email || 'dev@fatecweek.local',
+      permission: [
+        'Events:Manage',
+        'Exhibitors:Manage',
+        'Lectures:Manage',
+        'Booths:Manage',
+      ],
+      iat: now,
+      exp: now + 60 * 60 * 24,
+    };
+
+    const encodeBase64Url = (obj) =>
+      btoa(JSON.stringify(obj))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+
+    const fakeToken = `${encodeBase64Url(header)}.${encodeBase64Url(payload)}.`;
+    localStorage.setItem('@App:token', fakeToken);
+    navigate('/eventos');
+  };
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#f5f5f5' }}>
       <header className="header">
@@ -89,6 +117,15 @@ export default function LoginPage() {
               style={{ width: '100%', opacity: loading ? 0.75 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
             >
               {loading ? 'Entrando...' : 'Entrar'}
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handleLoginSemSenha}
+              style={{ width: '100%' }}
+            >
+              Entrar sem senha (temporario)
             </button>
           </form>
         </div>
