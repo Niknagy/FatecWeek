@@ -7,6 +7,7 @@ const NAV_LINKS = [
   { path: '/expositores',          label: 'Expositores' },
   { path: '/palestras',            label: 'Palestras' },
   { path: '/estandes',             label: 'Estandes' },
+  { path: '/relatorio',            label: 'Relatorio' },
   { path: '/reconhecimento-facial',label: 'Biometria' },
 ];
 

@@ -8,6 +8,7 @@ import FacialPage      from './pages/FacialPage';
 import ExpositoresPage from './pages/ExpositoresPage';
 import PalestrasPage   from './pages/PalestrasPage';
 import EstandesPage    from './pages/EstandesPage';
+import RelatorioPage   from './pages/RelatorioPage';
 
 import './styles/style.css';
 
@@ -55,6 +56,12 @@ function App() {
         <Route path="/estandes" element={
           <PrivateLayout requiredPolicy="Booths:Manage">
             <EstandesPage />
+          </PrivateLayout>
+        } />
+
+        <Route path="/relatorio" element={
+          <PrivateLayout>
+            <RelatorioPage />
           </PrivateLayout>
         } />
 

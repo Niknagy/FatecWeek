@@ -29,6 +29,45 @@ const validateDimensions = (blob) =>
     img.src = url;
   });
 
+async function tryGet(endpoints) {
+  let lastError = null;
+  for (const endpoint of endpoints) {
+    try {
+      const response = await api.get(endpoint.url, { params: endpoint.params });
+      return response.data;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error('Falha na consulta.');
+}
+
+async function tryPost(endpoints, body) {
+  let lastError = null;
+  for (const endpoint of endpoints) {
+    try {
+      const response = await api.post(endpoint.url, body);
+      return response.data;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error('Falha no registro.');
+}
+
+async function tryPatch(endpoints, body) {
+  let lastError = null;
+  for (const endpoint of endpoints) {
+    try {
+      const response = await api.patch(endpoint.url, body);
+      return response.data;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error('Falha na atualizacao.');
+}
+
 export const facialService = {
   // POST /api/facial/identify — { image: "base64-encoded-image" }
   async identify(imageBlob) {
@@ -50,5 +89,63 @@ export const facialService = {
   async checkIn() {
     const response = await api.get('/api/facial/check-in');
     return response.data;
+  },
+
+  async lookupByRa(ra) {
+    const cleanRa = String(ra || '').trim();
+    return tryGet([
+      { url: `/alunos/ra/${cleanRa}` },
+      { url: `/api/users/by-ra/${cleanRa}` },
+      { url: `/api/users/ra/${cleanRa}` },
+      { url: '/api/users/by-ra', params: { ra: cleanRa } },
+      { url: `/api/students/by-ra/${cleanRa}` },
+      { url: '/api/students/by-ra', params: { ra: cleanRa } },
+    ]);
+  },
+
+  async registerEntry(payload) {
+    const ra = String(payload?.ra || '').trim();
+    const eventoId = Number(payload?.eventoId);
+    if (!ra) throw new Error('RA nao informado para entrada.');
+    if (!Number.isFinite(eventoId) || eventoId <= 0) throw new Error('Evento nao selecionado para entrada.');
+
+    let fotoCheckin;
+    if (payload?.photoBlob && payload?.photoLinked !== false) {
+      fotoCheckin = await blobToBase64(payload.photoBlob);
+    }
+
+    const body = {
+      ra,
+      eventoId,
+      faceValidado: payload?.refusedPhoto ? false : Boolean(payload?.photoLinked),
+      tipoParticipacao: 'visitante',
+      fotoCheckin,
+    };
+
+    return tryPost([
+      { url: '/checkins/entrada' },
+      { url: '/api/attendance/entry' },
+      { url: '/api/check-ins/entry' },
+    ], body);
+  },
+
+  async registerExit(payload) {
+    const ra = String(payload?.ra || '').trim();
+    const eventoId = Number(payload?.eventoId);
+    if (!ra) throw new Error('RA nao informado para saida.');
+    if (!Number.isFinite(eventoId) || eventoId <= 0) throw new Error('Evento nao selecionado para saida.');
+
+    const ativo = await tryGet([
+      { url: '/checkins/ativo', params: { alunoId: ra, eventoId } },
+    ]);
+
+    const checkinId = ativo?.id;
+    if (!checkinId) {
+      throw new Error('Nao foi encontrado check-in ativo para este RA neste evento.');
+    }
+
+    return tryPatch([
+      { url: `/checkins/${checkinId}/saida` },
+    ], { ra });
   },
 };
